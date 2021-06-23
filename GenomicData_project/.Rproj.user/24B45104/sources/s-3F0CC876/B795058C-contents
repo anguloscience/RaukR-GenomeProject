@@ -1,0 +1,13 @@
+setwd("G:/Courses/a. Github repositories/RaukR 2021 project")
+
+#Install packages and load libraries
+install.packages("renv")
+renv::install("tidyverse", "tibble")
+
+require(tidyverse, tibble)
+
+tib_vcf = "chr22.1000g.copy.vcf" %>%
+  read.table() %>%
+  as_tibble() %>%
+  setNames(.,c("chrom", "pos", "new-var", "ref", "alt", "phred", 
+               "filter", "format", "GT", paste0(rep("ind",2504),"-", 1:2504)))
