@@ -1,3 +1,6 @@
+# RaukR 2021
+# Author: Mónica Angulo-Bedoya
+
 #Install packages and load libraries
 
 renv::install("tidyverse", "tibble")
@@ -19,16 +22,19 @@ tib_vcf = "chr22.1000g.copy.vcf" %>%
 
 
 
-#function to split "format" column
+# function to split "format" column
 # "x" is the name of the column
 splitcol<-function(x) {
   f<-strsplit(x,"=")
   setNames(sapply(f,'[',2), sapply(f,'[',1))
 }
+
 #Making each row into a vector
 fmt<-lapply(strsplit(tib_vcf$format,";"), splitcol)
+
 #new column names based on "format"
 col_nam<-unique(unlist(sapply(fmt, names)))
+
 #extract data for all rows from each column
 row_dat<-do.call(rbind, lapply(fmt, '[', col_nam))
 
