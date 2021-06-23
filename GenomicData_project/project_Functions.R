@@ -14,4 +14,4 @@ info_extract <- function(data = NULL, info = NULL){
 #info_extract(data = chr22vcf$info[15], info = "VT")
 
 
-
+# adding a random comment
