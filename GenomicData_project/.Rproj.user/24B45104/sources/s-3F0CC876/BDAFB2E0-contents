@@ -1,0 +1,147 @@
+---
+title: "RaukR 2021 project: Genomic Data"
+author: "Zhuang Liu"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true #add a table of contents (TOC)
+    toc_depth: 3 #headers' level in the toc
+    toc_float: true #toc visible even when scrolled
+    theme: lumen
+    highligh: tango
+    fig_width: 9
+    fig_height: 12
+    code_folding: show
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## 1. Read the VCF file as a tibble
+```{r}
+#Source the custom functions
+source("project_Functions.R")
+library(tidyverse)
+library(vroom)
+
+#chr22vcf <- vroom("Data/chr22.1000g.vcf", col_types = list(X1 = col_character(), X2 = col_integer()), col_names = FALSE, comment = "##")
+
+#save as the rds file (save the memory) and re-read it
+#saveRDS(chr22vcf, file = "Data/chr22vcf.rds")
+chr22vcf <- readRDS("Data/chr22vcf.rds")
+#Check the dimension of the data and take a quick look
+dim(chr22vcf)
+
+#rename the columns and take a look at the data
+colnames(chr22vcf) <- c("chr", "pos", "id", "ref", "alt", "qual", 
+                        "filter", "info", "format", paste0("sm", 1:2504))
+chr22vcf[1:10,1:15]
+```
+
+## 2. Extract the sequencing info
+```{r fig.width=12, fig.height=8}
+# extract the info using self-written function, like the VT (Variant Type) is the type of SNP or INDEL
+vcf_info_VT <- sapply(chr22vcf$info, FUN = function(x) info_extract(data = x, info = "VT"))
+vcf_info_VT <- do.call("rbind", vcf_info_VT) %>% as_tibble()
+require(ggbreak)
+vt_plot <- table(vcf_info_VT) %>% as_tibble() %>% 
+  rename(VT = vcf_info_VT) %>% 
+  mutate(VT=parse_factor(VT, levels = c("SNP", "INDEL", "SNP,INDEL", "SV"))) %>%
+  ggplot(., aes(x=VT, y=n, color = VT, fill=VT)) +
+  geom_bar(stat="identity") +
+  scale_color_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3")) +
+  scale_fill_manual(values = c("#66c2a5", "#fc8d62", "#8da0cb", "#e78ac3")) +
+  geom_text(aes(label=n), vjust=1.6, color="black", size=4) + 
+  labs(x="", y="Frequency", title = "Variant Numbers") +
+  theme_classic() +
+  theme(legend.position = "none") +
+  scale_y_break(c(20, 700), scales=0.5) +
+  scale_y_break(c(740,19000), scales=1)
+vt_plot
+```
+
+## 3. Extract and process the population info 
+```{r}
+#Download the original vcf file from the website and read it into R https://www.internationalgenome.org/data-portal/search?q=ALL.chr22.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf
+#ori <- vroom("Data/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf",
+#   col_types = list(X1 = col_character(), X2 = col_integer()),
+#                  col_names = FALSE, comment = "##", n_max = 100)
+#save as the rds file and re-read it
+#saveRDS(ori, file = "Data/ALL.chr22.origin.rds")
+ori <- readRDS("Data/ALL.chr22.origin.rds")
+
+#Just need the sample information
+sm_info <- ori[1,] %>% t() %>% as_tibble() %>% slice(-c(1:9))
+colnames(sm_info) <- "Sample_name"
+
+#Download the sample info from the website https://www.internationalgenome.org/data-portal/sample
+all_sminfo <- vroom("Data/igsr_samples.tsv")
+colnames(all_sminfo) <- gsub(" ","_",colnames(all_sminfo))
+#Get the sample info what we need for our project
+sm_info <- sm_info %>% 
+  left_join(., all_sminfo, by=c("Sample_name" = "Sample_name"))
+#delete the temporary files
+rm(ori, all_sminfo)
+```
+
+## 4. Draw a map of the distribution of samples
+```{r fig.width=12, fig.height=8}
+pop_loc <- vroom("Data/igsr_populations.tsv")
+colnames(pop_loc) <- gsub(" ","_",colnames(pop_loc))
+
+#add the population latitude and longitude
+uni_pop_n <- str_split(sm_info[["Population_name"]], pattern = ",") %>% unlist() %>% sort() %>% table() %>% as_tibble()
+colnames(uni_pop_n)[1] <- "Population_name"
+uni_pop <- str_split(sm_info[["Population_name"]], pattern = ",") %>% unlist() %>% unique() %>% sort()
+sm_loc <- pop_loc %>% select(3:6, 9) %>% 
+  filter(Population_name %in% uni_pop) %>% 
+  left_join(., uni_pop_n, by=c("Population_name" = "Population_name")) %>% 
+  distinct(Population_name, n, .keep_all = TRUE)
+
+table(sm_info$Population_name)
+
+require(ggplot2)
+require(maps)
+require(ggrepel)
+#Get the info of world map
+world <- map_data("world")
+
+summary(sm_loc$n)
+ggplot() +
+  geom_polygon(data = world, aes(x=long, y = lat, group = group, fill=group),  alpha=0.3, show.legend = FALSE) + #fill="grey",
+  geom_point(data=sm_loc, aes(x=Population_longitude, y=Population_latitude, color=Population_name, size=n), alpha=1, show.legend = FALSE) +
+  scale_size_continuous(range = c(1,4), breaks = c(seq(20,120, by=20))) +
+  theme_void() + 
+  labs(caption = "RaukR 2021 Genomic Data Project: Population Distribution") +
+  theme(
+    plot.background = element_rect(fill = "white", color = NA), 
+    panel.background = element_rect(fill = "white", color = NA), 
+    legend.background = element_rect(fill = "white", color = NA)
+  ) +
+  geom_text_repel(data = sm_loc, mapping = aes(x=Population_longitude, y=Population_latitude, label=Population_name), 
+    nudge_x = .15,
+    box.padding = 0.5,
+    nudge_y = 1.1,
+    segment.curvature = 0.1,
+    segment.ncp = 3,
+    segment.angle = 20,
+    max.overlaps = 20) 
+```
+
+## 5. sessioninfo
+```{r}
+sessionInfo()
+```
+
+
+
+
+
+
+
+
+
+
+
+
