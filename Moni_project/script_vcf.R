@@ -5,7 +5,8 @@
 
 renv::install("tidyverse", "tibble")
 
-require(tidyverse, tibble)
+require(tidyverse)
+require(tibble)
 
 
 # Input VCF data.
@@ -20,7 +21,7 @@ tib_vcf = "chr22.1000g.copy.vcf" %>%
   setNames(.,c("chrom", "pos", "new-var", "ref", "alt", "phred", 
                "filter", "format", "GT", paste0(rep("ind",2504),"-", 1:2504)))
 
-
+head(tib_vcf[1:10,1:15])
 
 # function to split "format" column
 # "x" is the name of the column
