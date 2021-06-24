@@ -2,8 +2,8 @@
 ## Genome Analyses - vcf file - Using R
 
 (Folder: Moni-project)
-This code will help you to read your .vcf file, add names to the columns, and separate the "format" column to work and analyse your data. Enjoy!
-You can find as well a short presentation using "xarigan" package for R.
+This code will help you to read your .vcf file, add names to the columns, and separate the "format" column to work and analyse your data. 
+You can find as well a short presentation using "xarigan" package for R. Enjoy!
 
 Genomic data from one human chromosome in a number of individuals coming from different populations.
 
