@@ -1,6 +1,8 @@
 # RaukR 2021 coding project
 ## Genome Analyses - vcf file
 
+This code will help you to read your .vcf file, add names to the columns, and separate the "format" column to be to analyse your data. Enjoy!
+
 Genomic data from one human chromosome in a number of individuals coming from different populations.
 
 File downloaded from the IGSR https://www.internationalgenome.org/data FTP site.
