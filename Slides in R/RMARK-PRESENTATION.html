@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="" xml:lang="">
+  <head>
+    <title>RaukR 2021 - Final project</title>
+    <meta charset="utf-8" />
+    <meta name="author" content="Authors: AsEf, MAB, MaOk, Phil, ZLi" />
+    <script src="libs/header-attrs-2.9/header-attrs.js"></script>
+    <link href="libs/remark-css-0.0.1/default.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/fc.css" rel="stylesheet" />
+    <link href="libs/remark-css-0.0.1/metropolis-fonts.css" rel="stylesheet" />
+    <link href="libs/countdown-0.3.5/countdown.css" rel="stylesheet" />
+    <script src="libs/countdown-0.3.5/countdown.js"></script>
+  </head>
+  <body>
+    <textarea id="source">
+class: center, middle, inverse, title-slide
+
+# RaukR 2021 - Final project
+## ∝ Genome analyses - Human Chromosome 22 ∝
+### Authors: AsEf, MAB, MaOk, Phil, ZLi
+### NBS Training
+### 2021/06/24
+
+---
+
+class:center, middle
+
+# **GROUP MEMBERS**
+
+## **Astradeni Efthymiadou**
+## **Marika Oksanen**
+## **Mónica Angulo-Bedoya**
+## **Philip Dusart**
+## **Zhuang Liu**
+
+### .right[Advisor: Nina Norgren]     
+---
+
+class: center 
+# **Project** - Analyses of a VCF format file with population allele frequencies of variants on human chromosome 22. 
+
+## **What is a VCF file? How does it look like? **
+
+
+![](https://user-images.githubusercontent.com/35312839/34796524-c4ddee7a-f623-11e7-99a3-4b6d193c894f.png)
+
+![]](https://media.tenor.com/images/80a69c16ccffac7c6ec418b3d5e6827f/tenor.gif)
+---
+class: center
+
+# Different nationalities, cultures, and backgrounds. Therefore different perspectives
+
+.left[
+## **Read as a tibble - option 1** - Working with pipelines
+
+```r
+require(tidyverse)
+require(tibble)
+
+tib_vcf = "chr22.1000g.copy.vcf" %&gt;%
+  read.table() %&gt;%
+  as_tibble() %&gt;%
+  setNames(.,c("chrom", "pos", "new-var", "ref", "alt", "phred", 
+               "filter", "format", "GT", paste0(rep("ind",2504),"-", 1:2504)))
+
+head(tib_vcf[1:8,1:8])
+```
+
+```
+## # A tibble: 6 x 8
+##   chrom     pos `new-var` ref   alt   phred filter format                       
+##   &lt;int&gt;   &lt;int&gt; &lt;chr&gt;     &lt;chr&gt; &lt;chr&gt; &lt;int&gt; &lt;chr&gt;  &lt;chr&gt;                        
+## 1    22  1.61e7 .         G     A       100 PASS   AC=3;AF=0.000599042;AN=5008;~
+## 2    22  1.61e7 .         C     T       100 PASS   AC=2;AF=0.000399361;AN=5008;~
+## 3    22  1.61e7 .         C     T       100 PASS   AC=10;AF=0.00199681;AN=5008;~
+## 4    22  1.61e7 .         G     A       100 PASS   AC=122;AF=0.024361;AN=5008;N~
+## 5    22  1.61e7 .         G     C       100 PASS   AC=1;AF=0.000199681;AN=5008;~
+## 6    22  1.61e7 .         G     A       100 PASS   AC=1;AF=0.000199681;AN=5008;~
+```
+]
+---
+
+```r
+splitcol&lt;-function(x) {
+  f&lt;-strsplit(x,"=")
+  setNames(sapply(f,'[',2), sapply(f,'[',1))
+}
+#Making each row into a vector
+fmt&lt;-lapply(strsplit(tib_vcf$format,";"), splitcol)
+
+#new column names based on "format"
+col_nam&lt;-unique(unlist(sapply(fmt, names)))
+
+#extract data for all rows from each column
+row_dat&lt;-do.call(rbind, lapply(fmt, '[', col_nam))
+
+#put together the new data set (format split) with the original dataset
+#be careful with the column number, so you introduce this data where you really want to.
+vcf_det&lt;-cbind(tib_vcf[,1:7], row_dat[,1:12], tib_vcf[,9:2513])
+
+head(vcf_det[1:8,1:12])
+```
+
+```
+##   chrom      pos new-var ref alt phred filter  AC          AF   AN   NS    DP
+## 1    22 16051493       .   G   A   100   PASS   3 0.000599042 5008 2504 22796
+## 2    22 16054848       .   C   T   100   PASS   2 0.000399361 5008 2504 24413
+## 3    22 16055937       .   C   T   100   PASS  10  0.00199681 5008 2504 19577
+## 4    22 16056586       .   G   A   100   PASS 122    0.024361 5008 2504 29802
+## 5    22 16061155       .   G   C   100   PASS   1 0.000199681 5008 2504 29105
+## 6    22 16061873       .   G   A   100   PASS   1 0.000199681 5008 2504 13691
+```
+---
+class: right
+![](https://media0.giphy.com/media/jJsQzGAJrP6J0plTA9/200w.gif?cid=82a1493blfsb2xc1ibjm49zbggcpvc4lu7bj8ftcf3y6jk6x&amp;rid=200w.gif&amp;ct=s)
+.left[![](https://media1.tenor.com/images/3a0c9909b542717ce9f651d07c4d4592/tenor.gif?itemid=8985245)]
+
+Slides created via the R package [**xaringan**]
+    </textarea>
+<style data-target="print-only">@media screen {.remark-slide-container{display:block;}.remark-slide-scaler{box-shadow:none;}}</style>
+<script src="https://remarkjs.com/downloads/remark-latest.min.js"></script>
+<script>var slideshow = remark.create({
+"highlightStyle": "github",
+"highlightLines": true,
+"countIncrementalSlides": false
+});
+if (window.HTMLWidgets) slideshow.on('afterShowSlide', function (slide) {
+  window.dispatchEvent(new Event('resize'));
+});
+(function(d) {
+  var s = d.createElement("style"), r = d.querySelector(".remark-slide-scaler");
+  if (!r) return;
+  s.type = "text/css"; s.innerHTML = "@page {size: " + r.style.width + " " + r.style.height +"; }";
+  d.head.appendChild(s);
+})(document);
+
+(function(d) {
+  var el = d.getElementsByClassName("remark-slides-area");
+  if (!el) return;
+  var slide, slides = slideshow.getSlides(), els = el[0].children;
+  for (var i = 1; i < slides.length; i++) {
+    slide = slides[i];
+    if (slide.properties.continued === "true" || slide.properties.count === "false") {
+      els[i - 1].className += ' has-continuation';
+    }
+  }
+  var s = d.createElement("style");
+  s.type = "text/css"; s.innerHTML = "@media print { .has-continuation { display: none; } }";
+  d.head.appendChild(s);
+})(document);
+// delete the temporary CSS (for displaying all slides initially) when the user
+// starts to view slides
+(function() {
+  var deleted = false;
+  slideshow.on('beforeShowSlide', function(slide) {
+    if (deleted) return;
+    var sheets = document.styleSheets, node;
+    for (var i = 0; i < sheets.length; i++) {
+      node = sheets[i].ownerNode;
+      if (node.dataset["target"] !== "print-only") continue;
+      node.parentNode.removeChild(node);
+    }
+    deleted = true;
+  });
+})();
+(function() {
+  "use strict"
+  // Replace <script> tags in slides area to make them executable
+  var scripts = document.querySelectorAll(
+    '.remark-slides-area .remark-slide-container script'
+  );
+  if (!scripts.length) return;
+  for (var i = 0; i < scripts.length; i++) {
+    var s = document.createElement('script');
+    var code = document.createTextNode(scripts[i].textContent);
+    s.appendChild(code);
+    var scriptAttrs = scripts[i].attributes;
+    for (var j = 0; j < scriptAttrs.length; j++) {
+      s.setAttribute(scriptAttrs[j].name, scriptAttrs[j].value);
+    }
+    scripts[i].parentElement.replaceChild(s, scripts[i]);
+  }
+})();
+(function() {
+  var links = document.getElementsByTagName('a');
+  for (var i = 0; i < links.length; i++) {
+    if (/^(https?:)?\/\//.test(links[i].getAttribute('href'))) {
+      links[i].target = '_blank';
+    }
+  }
+})();
+// adds .remark-code-has-line-highlighted class to <pre> parent elements
+// of code chunks containing highlighted lines with class .remark-code-line-highlighted
+(function(d) {
+  const hlines = d.querySelectorAll('.remark-code-line-highlighted');
+  const preParents = [];
+  const findPreParent = function(line, p = 0) {
+    if (p > 1) return null; // traverse up no further than grandparent
+    const el = line.parentElement;
+    return el.tagName === "PRE" ? el : findPreParent(el, ++p);
+  };
+
+  for (let line of hlines) {
+    let pre = findPreParent(line);
+    if (pre && !preParents.includes(pre)) preParents.push(pre);
+  }
+  preParents.forEach(p => p.classList.add("remark-code-has-line-highlighted"));
+})(document);</script>
+
+<script>
+slideshow._releaseMath = function(el) {
+  var i, text, code, codes = el.getElementsByTagName('code');
+  for (i = 0; i < codes.length;) {
+    code = codes[i];
+    if (code.parentNode.tagName !== 'PRE' && code.childElementCount === 0) {
+      text = code.textContent;
+      if (/^\\\((.|\s)+\\\)$/.test(text) || /^\\\[(.|\s)+\\\]$/.test(text) ||
+          /^\$\$(.|\s)+\$\$$/.test(text) ||
+          /^\\begin\{([^}]+)\}(.|\s)+\\end\{[^}]+\}$/.test(text)) {
+        code.outerHTML = code.innerHTML;  // remove <code></code>
+        continue;
+      }
+    }
+    i++;
+  }
+};
+slideshow._releaseMath(document);
+</script>
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+(function () {
+  var script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src  = 'https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-MML-AM_CHTML';
+  if (location.protocol !== 'file:' && /^https?:/.test(script.src))
+    script.src  = script.src.replace(/^https?:/, '');
+  document.getElementsByTagName('head')[0].appendChild(script);
+})();
+</script>
+  </body>
+</html>

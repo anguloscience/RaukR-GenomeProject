@@ -1,0 +1,94 @@
+---
+title: "RaukR 2021 - Final project"
+subtitle: "∝  Genome analyses - Human Chromosome 22  ∝"
+author: "Authors: AsEf, MAB, MaOk, Phil, ZLi"
+institute: "NBS Training"
+date: "2021/06/24" #(updated: `r Sys.Date()`)"
+output:
+  xaringan::moon_reader:
+    css: [default, fc, metropolis-fonts]
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+      countIncrementalSlides: false
+---
+class:center, middle
+```{r warning=FALSE, include=FALSE, message=FALSE}
+require(formatR)
+renv::install("tidyverse", "tibble")
+devtools::install_github("gadenbuie/countdown")
+require(countdown)
+countdown(minutes = 10)
+```
+# **GROUP MEMBERS**
+
+## **Astradeni Efthymiadou**
+## **Marika Oksanen**
+## **Mónica Angulo-Bedoya**
+## **Philip Dusart**
+## **Zhuang Liu**
+
+### .right[Advisor: Nina Norgren]     
+---
+
+class: center 
+# **Project** - Analyses of a VCF format file with population allele frequencies of variants on human chromosome 22. 
+
+## **What is a VCF file? How does it look like? **
+
+
+![](https://user-images.githubusercontent.com/35312839/34796524-c4ddee7a-f623-11e7-99a3-4b6d193c894f.png)
+
+![]](https://media.tenor.com/images/80a69c16ccffac7c6ec418b3d5e6827f/tenor.gif)
+---
+class: center
+
+# Different nationalities, cultures, and backgrounds. Therefore different perspectives
+
+.left[
+## **Read as a tibble - option 1** - Working with pipelines
+```{r,echo=TRUE, include=TRUE, warning = FALSE, message = FALSE}
+
+
+require(tidyverse)
+require(tibble)
+
+tib_vcf = "chr22.1000g.copy.vcf" %>%
+  read.table() %>%
+  as_tibble() %>%
+  setNames(.,c("chrom", "pos", "new-var", "ref", "alt", "phred", 
+               "filter", "format", "GT", paste0(rep("ind",2504),"-", 1:2504)))
+
+head(tib_vcf[1:8,1:8])
+
+```
+]
+---
+```{r,echo=TRUE, include=TRUE, warning = FALSE, message = FALSE}
+splitcol<-function(x) {
+  f<-strsplit(x,"=")
+  setNames(sapply(f,'[',2), sapply(f,'[',1))
+}
+#Making each row into a vector
+fmt<-lapply(strsplit(tib_vcf$format,";"), splitcol)
+
+#new column names based on "format"
+col_nam<-unique(unlist(sapply(fmt, names)))
+
+#extract data for all rows from each column
+row_dat<-do.call(rbind, lapply(fmt, '[', col_nam))
+
+#put together the new data set (format split) with the original dataset
+#be careful with the column number, so you introduce this data where you really want to.
+vcf_det<-cbind(tib_vcf[,1:7], row_dat[,1:12], tib_vcf[,9:2513])
+
+head(vcf_det[1:8,1:12])
+
+```
+---
+class: right
+![](https://media0.giphy.com/media/jJsQzGAJrP6J0plTA9/200w.gif?cid=82a1493blfsb2xc1ibjm49zbggcpvc4lu7bj8ftcf3y6jk6x&rid=200w.gif&ct=s)
+.left[![](https://media1.tenor.com/images/3a0c9909b542717ce9f651d07c4d4592/tenor.gif?itemid=8985245)]
+
+Slides created via the R package [**xaringan**]
