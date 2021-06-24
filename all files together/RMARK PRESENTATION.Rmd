@@ -202,7 +202,7 @@ map_plot <- ggplot() +
 .center[![](https://media1.tenor.com/images/3a0c9909b542717ce9f651d07c4d4592/tenor.gif?itemid=8985245)]
 
 ---
-# LOOK AT THIS MAP!!!
+# Here is the MAP!!!
 
 ```{r fig.width=12, fig.height=7, fig.align = 'center'}
 map_plot
@@ -211,11 +211,27 @@ map_plot
 ---
 # Final analyses results
 
-## **Calculating genetic differentiation **
+# **Calculating genetic differentiation **
+
+
+```{r, echo = F, include=FALSE}
+require(ExploreData)
+require(vcfR)
+require(tidyverse)
+require(reshape2)
+require(dplyr)
+require(tidyr)
+require(adegenet)
+require(hierfstat)
+require(pegas)
+require(mmod)
+require(ggplot2)
+```
+
+## **Loading the data**
 ```{r message=FALSE, warning=FALSE, include=TRUE}
 
-vcf <- read.vcfR("ast-chr22.1000g.vcf")
-
+vcf <- read.vcfR("chr22.1000g.vcf")
 Population_info <- read.table("Population_info.txt", sep="\t", header=TRUE)
 ```
 
@@ -265,10 +281,10 @@ boxplot(Basic_stats$perloc)
 
 ```
 ---
+class: middle
 ```{r message=FALSE, warning=FALSE, include=TRUE}
 
 # set the population info into in Mydata1 strata slot.
-
 strata(Mydata1) <- Population_info
 
 ```
@@ -276,13 +292,10 @@ strata(Mydata1) <- Population_info
 ```{r  message=FALSE, warning=FALSE, include=TRUE}
 
 setPop(Mydata1) <- ~Superpopulation_code 
-
 diff <- diff_stats(Mydata1)
 
 ```
 
----
-class: middle 
 ```{r  message=FALSE, warning=FALSE, include=FALSE}
 
 per.locus <- melt(diff$per.locus, varnames = c("Locus", "Statistic"))
@@ -290,7 +303,8 @@ stats     <- c("Hs", "Ht", "Gst", "Gprime_st", "D", "D")
 glob      <- data.frame(Statistic = stats, value = diff$global)
 
 ```
-
+---
+class: middle
 ```{r  message=FALSE, warning=FALSE, include=TRUE}
 
 set.seed(20151219) 
@@ -299,7 +313,8 @@ summarise_bootstrap(reps, D_Jost) # Using the D_Jost function to summarize.
 
 ```
 ---
-```{r eval=TRUE, message=FALSE, warning=FALSE, include=FALSE}
+class: middle
+```{r eval=TRUE, message=FALSE, warning=FALSE, include=TRUE}
 
 distance  <- dist(Mydata1) # Euclidean distance
 Strata  <- strata(Mydata1)
@@ -309,11 +324,10 @@ Amova <- pegas::amova(distance ~ Superpopulation_code/Population_name, data = St
 ```{r message=FALSE, warning=FALSE, include=TRUE}
 
 set.seed(20151219)
-
 Amova <- pegas::amova(distance ~ Superpopulation_code/Population_name, data = Strata, nperm = 10)
 
 ```
-
+---
 ```{r message=FALSE, warning=FALSE, include=TRUE}
 
 setPop(Mydata1) <- ~Superpopulation_code
@@ -321,6 +335,7 @@ DAPC <- dapc(Mydata1, n.pca = 100, n.da = 4) # 100 principal components; 4 discr
 scatter(DAPC)
 ```
 ---
+
 # **Other option to read the .vcf file: using vcfR package **
 ### Now let's see how to develop packages to analyze genomes.
 
