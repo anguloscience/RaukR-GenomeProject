@@ -1,4 +1,4 @@
-# RaukR 2021 coding project
+# RaukR - coding project
 ## Genome Analyses - vcf file - Using R
 
 (Folder: Moni-project)
